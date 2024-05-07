@@ -502,13 +502,3 @@ VALUES
     (9, 9),
     (10, 10);
 
-
-
-
-SELECT DISTINCT in_o.nombre_cliente,c_c.nombre_ciudad_cliente, p_c.nombre_pais_cliente
-FROM ciudad_cliente AS c_c
-INNER JOIN region_cliente AS r_c ON c_c.id_region_cliente = r_c.id_region_cliente
-INNER JOIN pais_cliente AS p_c ON r_c.id_pais_cliente = p_c.id_pais_cliente
-INNER JOIN info_cliente AS in_o ON c_c.codigo_cliente = in_o.codigo_cliente 
-WHERE p_c.nombre_pais_cliente = 'España';
-
