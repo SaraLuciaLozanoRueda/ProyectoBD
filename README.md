@@ -18,7 +18,7 @@
    +----------------+-----------------------+
    |              1 | Ciudad de México      |
    |              2 | New york              |
-   |              3 | Toronto               |
+   |              3 | Fuenlabrada           |
    |              4 | Sevilla               |
    |              5 | Colonia               |
    |              6 | Lyon                  |
@@ -448,7 +448,7 @@ sintaxis de SQL2 se deben resolver con INNER JOIN y NATURAL JOIN.
 
 
 1. Obtén un listado con el nombre de cada cliente y el nombre y apellido de su
-  representante de ventas.
+    representante de ventas.
 
   ```sql
   DELIMITER $$
@@ -478,7 +478,7 @@ sintaxis de SQL2 se deben resolver con INNER JOIN y NATURAL JOIN.
   
 
 2. Muestra el nombre de los clientes que hayan realizado pagos junto con el
-  nombre de sus representantes de ventas.
+    nombre de sus representantes de ventas.
 
   ```sql
   SELECT p.codigo_empleado,in_c.nombre_cliente
@@ -499,13 +499,13 @@ sintaxis de SQL2 se deben resolver con INNER JOIN y NATURAL JOIN.
   
 
 3. Muestra el nombre de los clientes que no hayan realizado pagos junto con
-  el nombre de sus representantes de ventas.
+    el nombre de sus representantes de ventas.
 
   ```sql
   SELECT p.codigo_empleado,in_c.nombre_cliente
   FROM pago AS p
   
-  INNER JOIN info_cliente AS in_c ON in_c.codigo_cliente = c.codigo_cliente
+  INNER JOIN info_cliente AS in_c ON in_c.codigo_cliente = p.codigo_cliente
   WHERE p.codigo_empleado IS NULL;
   
   +-----------------+----------------+
@@ -516,7 +516,6 @@ sintaxis de SQL2 se deben resolver con INNER JOIN y NATURAL JOIN.
   |            NULL | Pedro          |
   |            NULL | Ana            |
   |            NULL | Sara           |
-  |            NULL | Pablo          |
   |            NULL | Rosa           |
   +-----------------+----------------+
   ```
@@ -524,8 +523,8 @@ sintaxis de SQL2 se deben resolver con INNER JOIN y NATURAL JOIN.
   
 
 4. Devuelve el nombre de los clientes que han hecho pagos y el nombre de sus
-  representantes junto con la ciudad de la oficina a la que pertenece el
-  representante.
+    representantes junto con la ciudad de la oficina a la que pertenece el
+    representante.
 
   ```sql
   DELIMITER $$
@@ -555,11 +554,14 @@ sintaxis de SQL2 se deben resolver con INNER JOIN y NATURAL JOIN.
   
 
 5. Devuelve el nombre de los clientes que no hayan hecho pagos y el nombre
-  de sus representantes junto con la ciudad de la oficina a la que pertenece el
-  representante.
-
-  ```sql
+    de sus representantes junto con la ciudad de la oficina a la que pertenece el
+    representante.
   
+  ```mysql
+  SELECT p.codigo_empleado,in_c.nombre_cliente
+  FROM info_cliente AS in_c
+  INNER JOIN pago AS p ON in_c.codigo_cliente = p.codigo_cliente
+  WHERE in_c.codigo_cliente NOT IN (SELECT codigo_cliente FROM pago);
   ```
 
   
@@ -567,54 +569,116 @@ sintaxis de SQL2 se deben resolver con INNER JOIN y NATURAL JOIN.
 6. Lista la dirección de las oficinas que tengan clientes en Fuenlabrada.
 
    ```sql
+   SELECT dir_o.linea_direccion1_oficina,dir_o.linea_direccion2_oficina
+   FROM direccion_oficina AS dir_o
+   INNER JOIN ciudad_oficina AS ciu_o ON dir_o.codigo_oficina = ciu_o.codigo_oficina
+   WHERE ciu_o.nombre_ciudad_oficina = 'Fuenlabrada';
    
+   +--------------------------+--------------------------+
+   | linea_direccion1_oficina | linea_direccion2_oficina |
+   +--------------------------+--------------------------+
+   | Av. Revolución 789       | Col. Moderna             |
+   +--------------------------+--------------------------+
    ```
 
    
 
 7. Devuelve el nombre de los clientes y el nombre de sus representantes junto
-  con la ciudad de la oficina a la que pertenece el representante.
+     con la ciudad de la oficina a la que pertenece el representante.
 
-  ```sql
-  
-  ```
+     ```mysql
+     +----------------+-----------------+-----------------------+
+     | nombre_cliente | nombre_empleado | nombre_ciudad_oficina |
+     +----------------+-----------------+-----------------------+
+     | Luis           | Ana Sofía       | New york              |
+     | Carla          | Ana Sofía       | New york              |
+     +----------------+-----------------+-----------------------+
+     
+     SELECT inf_c.nombre_cliente, con_e.nombre_empleado, ciu_o.nombre_ciudad_oficina
+     FROM info_cliente AS inf_c
+     INNER JOIN cliente AS c ON inf_c.codigo_cliente = c.codigo_cliente
+     INNER JOIN contacto_empleado AS con_e ON c.codigo_empleado_repventas = con_e.codigo_empleado
+     INNER JOIN empleado AS e ON c.codigo_empleado_repventas = e.codigo_empleado
+     INNER JOIN ciudad_oficina AS ciu_o ON ciu_o.codigo_oficina = e.codigo_oficina;
+     ```
 
   
 
 8. Devuelve un listado con el nombre de los empleados junto con el nombre
-  de sus jefes.
+    de sus jefes.
+    
+    ```mysql
+    SELECT con_e.nombre_empleado,j.nombre_jefe
+    FROM empleado AS e
+    INNER JOIN contacto_empleado AS con_e ON con_e.codigo_empleado = e.codigo_empleado
+    INNER JOIN jefe AS j ON j.codigo_jefe = e.codigo_jefe;
+    
+    +-----------------+-------------+
+    | nombre_empleado | nombre_jefe |
+    +-----------------+-------------+
+    | María Elena     | Gerardo     |
+    | Pedro Luis      | Gerardo     |
+    | Ana Sofía       | Roberto     |
+    | Sara Alejandra  | Roberto     |
+    | Pablo Javier    | Eduardo     |
+    | Jorge Emilio    | Alejandro   |
+    | Rosa María      | María       |
+    +-----------------+-------------+
+    ```
+    
+    
 
-  ```sql
-  
-  ```
-
-  
-
-9. Devuelve un listado que muestre el nombre de cada empleados, el nombre
-  de su jefe y el nombre del jefe de sus jefe.
-
-  ```sql
-  
-  ```
-
-  
+9. Devuelve un listado que muestre el nombre de cada empleados, el nombre de su jefe y el nombre del jefe de sus jefe.
 
 10. Devuelve el nombre de los clientes a los que no se les ha entregado a
     tiempo un pedido.
 
     ```sql
+    SELECT inf_c.nombre_cliente,p.fecha_esperada,p.fecha_entrega
+    FROM info_cliente AS inf_c
+    INNER JOIN pedido AS p ON p.codigo_cliente = inf_c.codigo_cliente
+    WHERE NOT p.fecha_esperada = fecha_entrega;
     
+    +----------------+----------------+---------------+
+    | nombre_cliente | fecha_esperada | fecha_entrega |
+    +----------------+----------------+---------------+
+    | Juan           | 2024-04-10     | 2024-04-11    |
+    | María          | 2024-04-11     | 2024-04-12    |
+    | Pedro          | 2024-04-12     | 2024-04-13    |
+    | Ana            | 2009-04-13     | 2009-04-11    |
+    | Carla          | 2021-04-17     | 2021-04-13    |
+    +----------------+----------------+---------------+
     ```
-
     
-
-11. Devuelve un listado de las diferentes gamas de producto que ha comprado
-    cada cliente.
-
+    
+    
+11. Devuelve un listado de las diferentes gamas de producto que ha comprado cada cliente.
+    
     ```sql
+    SELECT inf_c.nombre_cliente, gama.descripcion_gama_producto
+    FROM cliente AS c
+    INNER JOIN info_cliente AS inf_c ON c.codigo_cliente = inf_c.codigo_cliente
+    INNER JOIN pedido AS p ON c.codigo_cliente = p.codigo_cliente
+    INNER JOIN detalle_pedido AS dp ON p.codigo_pedido = dp.codigo_pedido
+    INNER JOIN producto AS prod ON dp.codigo_producto = prod.codigo_producto
+    INNER JOIN gama_producto AS gama ON prod.id_gama_producto = gama.id_gama_producto;
     
+    +----------------+---------------------------+
+    | nombre_cliente | descripcion_gama_producto |
+    +----------------+---------------------------+
+    | Juan           | Higiene y bienestar       |
+    | Juan           | Ornamentales              |
+    | María          | Higiene y bienestar       |
+    | María          | Ornamentales              |
+    | Pedro          | Teconologia               |
+    | Ana            | Ornamentales              |
+    | Sara           | Ornamentales              |
+    | Pablo          | Teconologia               |
+    | Luis           | Ornamentales              |
+    | Carla          | Higiene y bienestar       |
+    +----------------+---------------------------+
     ```
-
+    
     
 
 ### Consultas multitabla (Composición externa)
@@ -623,113 +687,221 @@ Resuelva todas las consultas utilizando las cláusulas LEFT JOIN, RIGHT JOIN, NA
 LEFT JOIN y NATURAL RIGHT JOIN.
 
 1. Devuelve un listado que muestre solamente los clientes que no han
-  realizado ningún pago.
+    realizado ningún pago.
 
   ```mysql
-  
+  SELECT c.codigo_cliente
+  FROM cliente AS c
+  INNER JOIN pago AS p ON c.codigo_cliente = p.codigo_cliente
+  WHERE p.codigo_cliente IS NULL;
   ```
 
   
 
 2. Devuelve un listado que muestre solamente los clientes que no han
-  realizado ningún pedido.
+    realizado ningún pedido.
 
   ```mysql
-  
+  SELECT c.codigo_cliente
+  FROM cliente AS c
+  INNER JOIN pedido AS p ON c.codigo_cliente = p.codigo_cliente
+  WHERE p.codigo_cliente IS NULL;
   ```
 
   
 
 3. Devuelve un listado que muestre los clientes que no han realizado ningún
-  pago y los que no han realizado ningún pedido.
+    pago y los que no han realizado ningún pedido.
 
   ```mysql
-  
+  SELECT c.codigo_cliente
+  FROM cliente AS c
+  INNER JOIN pedido AS pe ON c.codigo_cliente = pe.codigo_cliente
+  INNER JOIN pago AS p ON c.codigo_cliente = p.codigo_cliente
+  WHERE p.codigo_cliente IS NULL;
   ```
 
   
 
 4. Devuelve un listado que muestre solamente los empleados que no tienen
-  una oficina asociada.
+    una oficina asociada.
 
   ```mysql
+  SELECT e.codigo_empleado,con_e.nombre_empleado
+  FROM empleado AS e 
+  INNER JOIN contacto_empleado AS con_e ON e.codigo_empleado = con_e.codigo_empleado
+  WHERE e.codigo_oficina IS NULL;
   
+  +-----------------+-----------------+
+  | codigo_empleado | nombre_empleado |
+  +-----------------+-----------------+
+  |               6 | Pablo Javier    |
+  |               9 | Jorge Emilio    |
+  +-----------------+-----------------+
   ```
 
   
 
-5. Devuelve un listado que muestre solamente los empleados que no tienen un
-  cliente asociado.
+5. Devuelve un listado que muestre solamente los empleados que no tienen un cliente asociado.
 
   ```mysql
+  SELECT e.codigo_empleado,c.codigo_cliente
+  FROM empleado AS e
+  LEFT JOIN cliente AS c ON c.codigo_empleado_repventas = e.codigo_empleado
+  WHERE c.codigo_empleado_repventas IS NULL;
   
+  +-----------------+----------------+
+  | codigo_empleado | codigo_cliente |
+  +-----------------+----------------+
+  |               1 |           NULL |
+  |               2 |           NULL |
+  |               3 |           NULL |
+  |               5 |           NULL |
+  |               6 |           NULL |
+  |               9 |           NULL |
+  |              10 |           NULL |
+  +-----------------+----------------+
   ```
 
   
 
-6. Devuelve un listado que muestre solamente los empleados que no tienen un
-  cliente asociado junto con los datos de la oficina donde trabajan.
+6. Devuelve un listado que muestre solamente los empleados que no tienen un cliente asociado junto con los datos de la oficina donde trabajan.
 
   ```mysql
+  SELECT e.codigo_empleado,c.codigo_cliente, con_o.codigo_postal_oficina, con_o.telefono_oficina, dir_o.linea_direccion1_oficina, dir_o.linea_direccion2_oficina
+  FROM empleado AS e
+  LEFT JOIN cliente AS c ON c.codigo_empleado_repventas = e.codigo_empleado
+  INNER JOIN oficina AS o ON e.codigo_oficina = o.codigo_oficina
+  LEFT JOIN contacto_oficina AS con_o ON o.codigo_oficina = con_o.codigo_oficina
+  LEFT JOIN direccion_oficina AS dir_o ON o.codigo_oficina = dir_o.codigo_oficina
+  WHERE c.codigo_empleado_repventas IS NULL;
   
+  +-----------------+----------------+-----------------------+------------------+--------------------------+--------------------------+
+  | codigo_empleado | codigo_cliente | codigo_postal_oficina | telefono_oficina | linea_direccion1_oficina | linea_direccion2_oficina |
+  +-----------------+----------------+-----------------------+------------------+--------------------------+--------------------------+
+  |               1 |           NULL | 12345                 | 555-123-456      | Av. Insurgentes Sur 123  | Col. Juárez              |
+  |               2 |           NULL | 12345                 | 555-123-456      | Av. Insurgentes Sur 123  | Col. Juárez              |
+  |               3 |           NULL | 54321                 | 555-987-654      | Av. Constitución 456     | Col. Centro              |
+  |               5 |           NULL | 67890                 | 555-321-987      | Av. Revolución 789       | Col. Moderna             |
+  |              10 |           NULL | 80246                 | 555-789-123      | Av. Reforma 987          | Col. Centro              |
+  +-----------------+----------------+-----------------------+------------------+--------------------------+--------------------------+
   ```
 
   
 
-7. Devuelve un listado que muestre los empleados que no tienen una oficina
-  asociada y los que no tienen un cliente asociado.
+7. Devuelve un listado que muestre los empleados que no tienen una oficina asociada y los que no tienen un cliente asociado.
 
   ```mysql
+  SELECT e.codigo_empleado,c.codigo_cliente,e.codigo_oficina
+  FROM empleado AS e
+  LEFT JOIN cliente AS c ON c.codigo_empleado_repventas = e.codigo_empleado
+  INNER JOIN contacto_empleado AS con_e ON e.codigo_empleado = con_e.codigo_empleado
+  WHERE e.codigo_oficina IS NULL AND c.codigo_empleado_repventas IS NULL;
   
+  +-----------------+----------------+----------------+
+  | codigo_empleado | codigo_cliente | codigo_oficina |
+  +-----------------+----------------+----------------+
+  |               6 |           NULL |           NULL |
+  |               9 |           NULL |           NULL |
+  +-----------------+----------------+----------------+
   ```
 
   
 
 8. Devuelve un listado de los productos que nunca han aparecido en un
-  pedido.
+    pedido.
 
   ```mysql
+  SELECT p.codigo_producto
+  FROM producto AS p
+  LEFT JOIN pedido AS pe ON p.codigo_producto = pe.codigo_producto
+  WHERE pe.codigo_producto IS NULL;
   
+  +-----------------+
+  | codigo_producto |
+  +-----------------+
+  |               2 |
+  +-----------------+
   ```
 
   
 
 9. Devuelve un listado de los productos que nunca han aparecido en un
-  pedido. El resultado debe mostrar el nombre, la descripción y la imagen del
-  producto.
+    pedido. El resultado debe mostrar el nombre, la descripción y la imagen del producto.
 
   ```mysql
+  SELECT p.nombre_producto,descripcion_gama_producto,imagen
+  FROM producto AS p
+  LEFT JOIN pedido AS pe ON p.codigo_producto = pe.codigo_producto
+  INNER JOIN gama_producto AS g_pr ON p.codigo_producto = g_pr.codigo_producto
+  WHERE pe.codigo_producto IS NULL;
   
+  +---------------------+---------------------------+-------------+
+  | nombre_producto     | descripcion_gama_producto | imagen      |
+  +---------------------+---------------------------+-------------+
+  | EcoFresh Toothpaste | Higiene y bienestar       | imagen2.jpg |
+  +---------------------+---------------------------+-------------+
   ```
 
   
 
 10. Devuelve las oficinas donde no trabajan ninguno de los empleados que
-    hayan sido los representantes de ventas de algún cliente que haya realizado
-    la compra de algún producto de la gama Frutales.
-
+    hayan sido los representantes de ventas de algún cliente que haya realizado la compra de algún producto de la gama Frutales.
+    
     ```mysql
-    
+    SELECT o.codigo_oficina
+    FROM oficina AS o
+    LEFT JOIN empleado AS e ON o.codigo_oficina = e.codigo_oficina
+    LEFT JOIN cliente AS c ON e.codigo_empleado = c.codigo_empleado
+    LEFT JOIN pedido AS pe ON c.codigo_cliente = pe.codigo_cliente
+    LEFT JOIN producto AS p ON pe.codigo_producto = p.codigo_producto
+    LEFT JOIN gama_producto AS g ON p.id_gama_producto = g.id_gama_producto
+    WHERE e.puesto = 'Representante de ventas'
+    AND g.descripcion_gama_producto = 'Frutales'
+    AND e.codigo_empleado IS NULL;
     ```
-
     
-
-11. Devuelve un listado con los clientes que han realizado algún pedido pero no
-    han realizado ningún pago.
-
+    
+    
+11. Devuelve un listado con los clientes que han realizado algún pedido pero no han realizado ningún pago.
+    
     ```mysql
-    
+    SELECT DISTINCT o.codigo_oficina
+    FROM oficina AS o
+    LEFT JOIN empleado AS e ON o.codigo_oficina = e.codigo_oficina
+    LEFT JOIN cliente AS c ON e.codigo_empleado = c.codigo_empleado_repventas
+    LEFT JOIN pedido AS pe ON c.codigo_cliente = pe.codigo_cliente
+    LEFT JOIN detalle_pedido AS dp ON pe.codigo_pedido = dp.codigo_pedido
+    LEFT JOIN producto AS pr ON dp.codigo_producto = pr.codigo_producto
+    LEFT JOIN gama_producto AS g_pr ON pr.id_gama_producto = g_pr.id_gama_producto
+    WHERE g_pr.descripcion_gama_producto = 'Frutales'
+    AND e.codigo_empleado IS NULL;
     ```
-
     
-
+    
+    
 12. Devuelve un listado con los datos de los empleados que no tienen clientes
     asociados y el nombre de su jefe asociado.
 
     ```mysql
+    SELECT e.codigo_empleado,c.codigo_cliente,j.nombre_jefe
+    FROM empleado AS e
+    LEFT JOIN cliente AS c ON c.codigo_empleado_repventas = e.codigo_empleado
+    INNER JOIN jefe AS j ON e.codigo_jefe = j.codigo_jefe
+    WHERE c.codigo_empleado_repventas IS NULL;
     
+    +-----------------+----------------+-------------+
+    | codigo_empleado | codigo_cliente | nombre_jefe |
+    +-----------------+----------------+-------------+
+    |               2 |           NULL | Gerardo     |
+    |               3 |           NULL | Gerardo     |
+    |               5 |           NULL | Roberto     |
+    |               6 |           NULL | Eduardo     |
+    |               9 |           NULL | Alejandro   |
+    |              10 |           NULL | María       |
+    +-----------------+----------------+-------------+
     ```
-
+    
     
 
 ### Consultas resumen
@@ -737,7 +909,20 @@ LEFT JOIN y NATURAL RIGHT JOIN.
 1. ¿Cuántos empleados hay en la compañía?
 
    ```mysql
+   DELIMITER $$
+   CREATE PROCEDURE TOTAL_EMPLEADOS()
+   BEGIN 
+     SELECT COUNT(e.codigo_empleado) AS TOTAL_EMPLEADOS
+     FROM empleado AS e;
+   END$$
+   DELIMITER ;
+   CALL TOTAL_EMPLEADOS();
    
+   +-----------------+
+   | TOTAL_EMPLEADOS |
+   +-----------------+
+   |              10 |
+   +-----------------+
    ```
 
    
@@ -745,7 +930,25 @@ LEFT JOIN y NATURAL RIGHT JOIN.
 2. ¿Cuántos clientes tiene cada país?
 
    ```mysql
+   SELECT p_c.nombre_pais_cliente, COUNT(DISTINCT c.codigo_cliente) AS conteo
+   FROM cliente AS c
+   INNER JOIN ciudad_cliente AS c_c ON c.id_ciudad_cliente = c_c.id_ciudad_cliente
+   INNER JOIN region_cliente AS r_c ON c_c.id_region_cliente = r_c.id_region_cliente
+   INNER JOIN pais_cliente AS p_c ON r_c.id_pais_cliente = p_c.id_pais_cliente
+   GROUP BY p_c.nombre_pais_cliente;
    
+   +---------------------+--------+
+   | nombre_pais_cliente | conteo |
+   +---------------------+--------+
+   | Alemania            |      1 |
+   | Canadá              |      1 |
+   | China               |      1 |
+   | España              |      2 |
+   | Estados Unidos      |      1 |
+   | Francia             |      1 |
+   | Italia              |      1 |
+   | México              |      1 |
+   +---------------------+--------+
    ```
 
    
@@ -759,7 +962,7 @@ LEFT JOIN y NATURAL RIGHT JOIN.
    
 
 4. ¿Cuántos pedidos hay en cada estado? Ordena el resultado de forma
-  descendente por el número de pedidos.
+    descendente por el número de pedidos.
 
   ```mysql
   
@@ -768,7 +971,7 @@ LEFT JOIN y NATURAL RIGHT JOIN.
   
 
 5. Calcula el precio de venta del producto más caro y más barato en una
-  misma consulta.
+    misma consulta.
 
   ```mysql
   
@@ -793,7 +996,7 @@ LEFT JOIN y NATURAL RIGHT JOIN.
    
 
 8. ¿Calcula cuántos clientes tiene cada una de las ciudades que empiezan
-  por M?
+    por M?
 
   ```mysql
   
@@ -802,7 +1005,7 @@ LEFT JOIN y NATURAL RIGHT JOIN.
   
 
 9. Devuelve el nombre de los representantes de ventas y el número de clientes
-  al que atiende cada uno.
+    al que atiende cada uno.
 
   ```mysql
   
@@ -928,9 +1131,9 @@ LEFT JOIN y NATURAL RIGHT JOIN.
    
 
 3. Devuelve el nombre del producto del que se han vendido más unidades.
-  (Tenga en cuenta que tendrá que calcular cuál es el número total de
-  unidades que se han vendido de cada producto a partir de los datos de la
-  tabla detalle_pedido)
+    (Tenga en cuenta que tendrá que calcular cuál es el número total de
+    unidades que se han vendido de cada producto a partir de los datos de la
+    tabla detalle_pedido)
 
   ```mysql
   
@@ -939,7 +1142,7 @@ LEFT JOIN y NATURAL RIGHT JOIN.
   
 
 4. Los clientes cuyo límite de crédito sea mayor que los pagos que haya
-  realizado. (Sin utilizar INNER JOIN).
+    realizado. (Sin utilizar INNER JOIN).
 
   ```mysql
   
@@ -964,7 +1167,7 @@ LEFT JOIN y NATURAL RIGHT JOIN.
    
 
 7. Devuelve el nombre, los apellidos y el email de los empleados que están a
-  cargo de Alberto Soria.
+    cargo de Alberto Soria.
 
   
 
