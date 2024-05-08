@@ -608,22 +608,23 @@ sintaxis de SQL2 se deben resolver con INNER JOIN y NATURAL JOIN.
     de sus jefes.
     
     ```mysql
-    SELECT con_e.nombre_empleado,j.nombre_jefe
-    FROM empleado AS e
-    INNER JOIN contacto_empleado AS con_e ON con_e.codigo_empleado = e.codigo_empleado
-    INNER JOIN jefe AS j ON j.codigo_jefe = e.codigo_jefe;
-    
-    +-----------------+-------------+
-    | nombre_empleado | nombre_jefe |
-    +-----------------+-------------+
-    | María Elena     | Gerardo     |
-    | Pedro Luis      | Gerardo     |
-    | Ana Sofía       | Roberto     |
-    | Sara Alejandra  | Roberto     |
-    | Pablo Javier    | Eduardo     |
-    | Jorge Emilio    | Alejandro   |
-    | Rosa María      | María       |
-    +-----------------+-------------+
+       SELECT con_e.nombre_empleado,j.nombre_jefe,j.apellido1_jefe
+       FROM empleado AS e
+       INNER JOIN contacto_empleado AS con_e ON con_e.codigo_empleado = e.codigo_empleado
+       INNER JOIN jefe AS j ON j.codigo_jefe = e.codigo_jefe;
+   
+         +-----------------+-------------+----------------+
+         | nombre_empleado | nombre_jefe | apellido1_jefe |
+         +-----------------+-------------+----------------+
+         | María Elena     | Gerardo     | Hernández      |
+         | Pedro Luis      | Gerardo     | Hernández      |
+         | Ana Sofía       | Roberto     | Fernández      |
+         | Sara Alejandra  | Roberto     | Fernández      |
+         | Pablo Javier    | Eduardo     | López          |
+         | Luis Fernando   | Alberto     | Soria          |
+         | Jorge Emilio    | Alberto     | Soria          |
+         | Rosa María      | María       | González       |
+         +-----------------+-------------+----------------+
     ```
     
     
@@ -866,16 +867,17 @@ LEFT JOIN y NATURAL RIGHT JOIN.
 11. Devuelve un listado con los clientes que han realizado algún pedido pero no han realizado ningún pago.
     
     ```mysql
-    SELECT DISTINCT o.codigo_oficina
-    FROM oficina AS o
-    LEFT JOIN empleado AS e ON o.codigo_oficina = e.codigo_oficina
-    LEFT JOIN cliente AS c ON e.codigo_empleado = c.codigo_empleado_repventas
-    LEFT JOIN pedido AS pe ON c.codigo_cliente = pe.codigo_cliente
-    LEFT JOIN detalle_pedido AS dp ON pe.codigo_pedido = dp.codigo_pedido
-    LEFT JOIN producto AS pr ON dp.codigo_producto = pr.codigo_producto
-    LEFT JOIN gama_producto AS g_pr ON pr.id_gama_producto = g_pr.id_gama_producto
-    WHERE g_pr.descripcion_gama_producto = 'Frutales'
-    AND e.codigo_empleado IS NULL;
+       SELECT DISTINCT c.codigo_cliente
+      FROM cliente AS c
+      INNER JOIN pedido AS p ON c.codigo_cliente = p.codigo_cliente
+      WHERE c.codigo_cliente NOT IN ( SELECT DISTINCT codigo_cliente FROM pago);
+    
+      +----------------+
+      | codigo_cliente |
+      +----------------+
+      |              3 |
+      |              6 |
+      +----------------+
     ```
     
     
@@ -956,7 +958,15 @@ LEFT JOIN y NATURAL RIGHT JOIN.
 3. ¿Cuál fue el pago medio en 2009?
 
    ```mysql
-   
+   SELECT AVG(p.total_pago) AS media
+   FROM pago AS p
+   WHERE YEAR(p.fecha_pago) = '2009';
+
+   +------------+
+   | media      |
+   +------------+
+   | 190.000000 |
+   +------------+
    ```
 
    
@@ -965,7 +975,25 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     descendente por el número de pedidos.
 
   ```mysql
-  
+   DELIMITER $$
+   CREATE PROCEDURE estados_cantidad()
+   BEGIN
+     SELECT p.estado_pedido, COUNT(p.estado_pedido) AS cantidad
+     FROM pedido AS p
+     GROUP BY p.estado_pedido
+     ORDER BY cantidad DESC;
+   END$$
+   DELIMITER ;
+   CALL estados_cantidad();
+   
+   +---------------+----------+
+   | estado_pedido | cantidad |
+   +---------------+----------+
+   | en proceso    |        6 |
+   | finalizado    |        2 |
+   | no permitido  |        2 |
+   +---------------+----------+
+   
   ```
 
   
@@ -974,7 +1002,18 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     misma consulta.
 
   ```mysql
-  
+   CREATE VIEW mas_menos AS
+   SELECT MIN(p.precio_venta)AS MAS_BARATO,MAX(p.precio_venta) AS MAS_CARO
+   FROM producto AS p;
+   
+   SELECT MAS_BARATO,MAS_CARO
+   FROM mas_menos;
+   
+   +------------+----------+
+   | MAS_BARATO | MAS_CARO |
+   +------------+----------+
+   |      10.00 |    50.00 |
+   +------------+----------+
   ```
 
   
@@ -982,7 +1021,14 @@ LEFT JOIN y NATURAL RIGHT JOIN.
 6. Calcula el número de clientes que tiene la empresa.
 
    ```mysql
-   
+      SELECT COUNT(c.codigo_cliente) AS cantidad_Clientes
+      FROM cliente AS c;
+      
+      +-------------------+
+      | cantidad_Clientes |
+      +-------------------+
+      |                10 |
+      +-------------------+
    ```
 
    
@@ -990,6 +1036,24 @@ LEFT JOIN y NATURAL RIGHT JOIN.
 7. ¿Cuántos clientes existen con domicilio en la ciudad de Madrid?
 
    ```mysql
+      DELIMITER $$
+      CREATE PROCEDURE domicilio_Madrid()
+      BEGIN 
+        SELECT COUNT(c.codigo_cliente) AS cantidad_Clientes
+        FROM cliente AS c
+        INNER JOIN ciudad_cliente AS ciu_c ON ciu_c.codigo_cliente = c.codigo_cliente
+        WHERE ciu_c.nombre_ciudad_cliente = 'Madrid'
+        GROUP BY ciu_c.nombre_ciudad_cliente;
+      END$$
+      DELIMITER ;
+      
+      CALL domicilio_Madrid();
+      
+      +-------------------+
+      | cantidad_Clientes |
+      +-------------------+
+      |                 2 |
+      +-------------------+
    
    ```
 
@@ -999,7 +1063,17 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     por M?
 
   ```mysql
-  
+     SELECT ciu_c.nombre_ciudad_cliente,COUNT(c.codigo_cliente) AS cantidad_Clientes
+     FROM cliente AS c
+     INNER JOIN ciudad_cliente AS ciu_c ON ciu_c.codigo_cliente = c.codigo_cliente
+     WHERE ciu_c.nombre_ciudad_cliente LIKE 'M%'
+     GROUP BY ciu_c.nombre_ciudad_cliente;
+      
+      +-----------------------+-------------------+
+      | nombre_ciudad_cliente | cantidad_Clientes |
+      +-----------------------+-------------------+
+      | Madrid                |                 2 |
+      +-----------------------+-------------------+
   ```
 
   
@@ -1008,6 +1082,18 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     al que atiende cada uno.
 
   ```mysql
+   SELECT con_e.nombre_empleado AS REP_VENTAS,COUNT(c.codigo_cliente) AS CLIENTES
+   FROM contacto_empleado AS con_e
+   INNER JOIN cliente AS c ON c.codigo_empleado_repventas = con_e.codigo_empleado
+   GROUP BY REP_VENTAS;
+   
+   +---------------+----------+
+   | REP_VENTAS    | CLIENTES |
+   +---------------+----------+
+   | Luis Fernando |        2 |
+   | Pablo Javier  |        2 |
+   | Ana Sofía     |        1 |
+   +---------------+----------+
   
   ```
 
@@ -1017,6 +1103,15 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     ventas.
 
     ```mysql
+       SELECT COUNT(c.codigo_cliente) AS NO_TIENEN
+      FROM cliente AS c
+      WHERE c.codigo_empleado_repventas IS NULL;
+      
+      +-----------+
+      | NO_TIENEN |
+      +-----------+
+      |         5 |
+      +-----------+
     
     ```
 
@@ -1026,7 +1121,25 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     clientes. El listado deberá mostrar el nombre y los apellidos de cada cliente.
 
     ```mysql
-    
+      SELECT c.codigo_cliente,in_c.nombre_cliente,in_c.nombre2_cliente,in_c.apellido1_cliente,in_c.apellido2_cliente,MIN(p.fecha_pago) AS primer_pago,MAX(p.fecha_pago) AS ultimo_pago
+      from pago AS p
+      INNER JOIN cliente AS c ON p.codigo_cliente = c.codigo_cliente
+      INNER JOIN info_cliente AS in_c ON c.codigo_cliente = in_c.codigo_cliente
+      GROUP BY c.codigo_cliente,in_c.nombre_cliente,in_c.nombre2_cliente,in_c.apellido1_cliente,in_c.apellido2_cliente;
+      
+      +----------------+----------------+-----------------+-------------------+-------------------+-------------+-------------+
+      | codigo_cliente | nombre_cliente | nombre2_cliente | apellido1_cliente | apellido2_cliente | primer_pago | ultimo_pago |
+      +----------------+----------------+-----------------+-------------------+-------------------+-------------+-------------+
+      |              1 | Juan           | Carlos          | Gómez             | Hernández         | 2008-04-15  | 2024-04-17  |
+      |              2 | María          | Elena           | Martínez          | Sánchez           | 2009-04-16  | 2009-04-16  |
+      |              4 | Ana            | Sofía           | Díaz              | Pérez             | 2009-04-18  | 2009-04-18  |
+      |              5 | Sara           | Alejandra       | Torres            | García            | 2008-04-19  | 2008-04-19  |
+      |              7 | Luis           | Fernando        | Vázquez           | Gómez             | 2024-04-21  | 2024-04-21  |
+      |              8 | Carla          | Lucía           | Ruiz              | Santos            | 2024-04-22  | 2024-04-22  |
+      |              9 | Jorge          | Emilio          | Hernández         | Gutiérrez         | 2022-05-03  | 2022-05-03  |
+      |             10 | Rosa           | María           | Gómez             | Martínez          | 2008-04-20  | 2008-04-24  |
+      +----------------+----------------+-----------------+-------------------+-------------------+-------------+-------------+
+       
     ```
 
     
@@ -1035,6 +1148,24 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     pedidos.
 
     ```mysql
+       SELECT codigo_pedido, COUNT(DISTINCT codigo_producto) AS productos_diferentes
+      FROM pedido
+      GROUP BY codigo_pedido;
+      
+      +---------------+----------------------+
+      | codigo_pedido | productos_diferentes |
+      +---------------+----------------------+
+      |             1 |                    1 |
+      |             2 |                    1 |
+      |             3 |                    1 |
+      |             4 |                    1 |
+      |             5 |                    1 |
+      |             6 |                    1 |
+      |             7 |                    1 |
+      |             8 |                    1 |
+      |             9 |                    1 |
+      |            10 |                    1 |
+      +---------------+----------------------+
     
     ```
 
@@ -1044,6 +1175,23 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     cada uno de los pedidos.
 
     ```mysql
+      SELECT codigo_pedido, COUNT(DISTINCT codigo_producto) AS productos_diferentes
+      FROM pedido
+      GROUP BY codigo_pedido;
+       +---------------+----------------------+
+      | codigo_pedido | productos_diferentes |
+      +---------------+----------------------+
+      |             1 |                    1 |
+      |             2 |                    1 |
+      |             3 |                    1 |
+      |             4 |                    1 |
+      |             5 |                    1 |
+      |             6 |                    1 |
+      |             7 |                    1 |
+      |             8 |                    1 |
+      |             9 |                    1 |
+      |            10 |                    1 |
+      +---------------+----------------------+
     
     ```
 
@@ -1054,6 +1202,27 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     por el número total de unidades vendidas.
 
     ```mysql
+       SELECT p.nombre_producto,SUM(d_p.cantidad) AS UNIDADES_VENDIDAS
+      FROM producto AS p
+      INNER JOIN detalle_pedido AS d_p ON p.codigo_producto = d_p.codigo_producto
+      GROUP BY p.nombre_producto
+      ORDER BY UNIDADES_VENDIDAS DESC
+       LIMIT 20;
+      
+      +------------------------------------+-------------------+
+      | nombre_producto                    | UNIDADES_VENDIDAS |
+      +------------------------------------+-------------------+
+      | Mi vaquita                         |                 5 |
+      | Golden Filigree Christmas Ornament |                 5 |
+      | SwiftCharge Power Bank             |                 4 |
+      | EcoFresh Toothpaste                |                 3 |
+      | La guerra de troya                 |                 3 |
+      | Rustic Wooden Snowflake Deco       |                 2 |
+      | TechGrip Phone Moun                |                 2 |
+      | GlowBloom Facial Serum             |                 1 |
+      | Charming Garden Wind Chime         |                 1 |
+      | MindfulMeditation App              |                 1 |
+      +------------------------------------+-------------------+
     
     ```
 
@@ -1066,7 +1235,21 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     suma de los dos campos anteriores.
 
     ```mysql
-    
+       DELIMITER $$
+      CREATE PROCEDURE facturacion()
+      BEGIN
+        SELECT SUM(p.precio_proveedor * d_p.cantidad) AS BASE_IMPONIBLE , 0.21 * SUM(p.precio_proveedor * d_p.cantidad) AS IVA, SUM(p.precio_proveedor * d_p.cantidad) +(0.21 * SUM(p.precio_proveedor *                d_p.cantidad)) AS TOTAL 
+          FROM producto AS p 
+          INNER JOIN detalle_pedido AS d_p ON p.codigo_producto = d_p.codigo_producto;
+      END$$
+      DELIMITER ;
+      CALL facturacion();
+      
+      +----------------+---------+----------+
+      | BASE_IMPONIBLE | IVA     | TOTAL    |
+      +----------------+---------+----------+
+      |         411.00 | 86.3100 | 497.3100 |
+      +----------------+---------+----------+
     ```
 
     
@@ -1075,7 +1258,25 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     código de producto.
 
     ```mysql
-    
+       SELECT d_p.codigo_producto,SUM(p.precio_proveedor * d_p.cantidad) AS BASE_IMPONIBLE , 0.21 * SUM(p.precio_proveedor * d_p.cantidad) AS IVA, SUM(p.precio_proveedor * d_p.cantidad) +(0.21 *                    SUM(p.precio_proveedor * d_p.cantidad)) AS TOTAL 
+      FROM producto AS p 
+      INNER JOIN detalle_pedido AS d_p ON p.codigo_producto = d_p.codigo_producto
+      GROUP BY d_p.codigo_producto;
+      
+      +-----------------+----------------+---------+---------+
+      | codigo_producto | BASE_IMPONIBLE | IVA     | TOTAL   |
+      +-----------------+----------------+---------+---------+
+      |               1 |          50.00 | 10.5000 | 60.5000 |
+      |               2 |          60.00 | 12.6000 | 72.6000 |
+      |               3 |          30.00 |  6.3000 | 36.3000 |
+      |               4 |          25.00 |  5.2500 | 30.2500 |
+      |               5 |          32.00 |  6.7200 | 38.7200 |
+      |               6 |          35.00 |  7.3500 | 42.3500 |
+      |               7 |          54.00 | 11.3400 | 65.3400 |
+      |               8 |          20.00 |  4.2000 | 24.2000 |
+      |               9 |          75.00 | 15.7500 | 90.7500 |
+      |              10 |          30.00 |  6.3000 | 36.3000 |
+      +-----------------+----------------+---------+---------+
     ```
 
     
@@ -1084,7 +1285,18 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     código de producto filtrada por los códigos que empiecen por OR.
 
     ```mysql
-    
+          SELECT d_p.codigo_producto,SUM(p.precio_proveedor * d_p.cantidad) AS BASE_IMPONIBLE , 0.21 * SUM(p.precio_proveedor * d_p.cantidad) AS IVA, SUM(p.precio_proveedor * d_p.cantidad) +(0.21 * SUM(p.precio_proveedor * d_p.cantidad)) AS TOTAL 
+         FROM producto AS p 
+         INNER JOIN detalle_pedido AS d_p ON p.codigo_producto = d_p.codigo_producto
+         INNER JOIN gama_producto AS g_pr ON p.codigo_producto = g_pr.codigo_producto
+         WHERE g_pr.descripcion_gama_producto LIKE 'Or%'
+         GROUP BY d_p.codigo_producto;
+         
+         +-----------------+----------------+---------+---------+
+         | codigo_producto | BASE_IMPONIBLE | IVA     | TOTAL   |
+         +-----------------+----------------+---------+---------+
+         |               1 |          50.00 | 10.5000 | 60.5000 |
+         +-----------------+----------------+---------+---------+
     ```
 
     
@@ -1094,7 +1306,25 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     facturado con impuestos (21% IVA).
 
     ```mysql
-    
+       SELECT p.nombre_producto,SUM(d_p.cantidad) AS UNIDADES_VENDIDAS,SUM(p.precio_venta * d_p.cantidad) AS FACTURADO , 0.21 * SUM(p.precio_proveedor * d_p.cantidad) AS CON_IVA 
+      FROM producto AS p 
+      INNER JOIN detalle_pedido AS d_p ON p.codigo_producto = d_p.codigo_producto
+      GROUP BY d_p.codigo_producto
+      HAVING SUM(p.precio_venta * d_p.cantidad) > 30;
+      
+      +------------------------------------+-------------------+-----------+---------+
+      | nombre_producto                    | UNIDADES_VENDIDAS | FACTURADO | CON_IVA |
+      +------------------------------------+-------------------+-----------+---------+
+      | Mi vaquita                         |                 5 |     75.00 | 10.5000 |
+      | EcoFresh Toothpaste                |                 3 |     90.00 | 12.6000 |
+      | Rustic Wooden Snowflake Deco       |                 2 |     40.00 |  6.3000 |
+      | GlowBloom Facial Serum             |                 1 |     40.00 |  5.2500 |
+      | SwiftCharge Power Bank             |                 4 |     40.00 |  6.7200 |
+      | Charming Garden Wind Chime         |                 1 |     50.00 |  7.3500 |
+      | La guerra de troya                 |                 3 |     75.00 | 11.3400 |
+      | Golden Filigree Christmas Ornament |                 5 |     93.75 | 15.7500 |
+      | MindfulMeditation App              |                 1 |     40.00 |  6.3000 |
+      +------------------------------------+-------------------+-----------+---------+
     ```
 
     
@@ -1103,7 +1333,18 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     de los años que aparecen en la tabla pagos.
 
     ```mysql
-    
+       SELECT YEAR(p.fecha_pago) AS AÑO,SUM(p.total_pago) AS TOTAL
+      FROM pago AS p
+      GROUP BY YEAR(p.fecha_pago);
+      
+      +------+--------+
+      | AÑO  | TOTAL  |
+      +------+--------+
+      | 2008 | 740.00 |
+      | 2009 | 380.00 |
+      | 2024 | 500.00 |
+      | 2022 | 300.00 |
+      +------+--------+
     ```
 
     
@@ -1117,7 +1358,17 @@ LEFT JOIN y NATURAL RIGHT JOIN.
 1. Devuelve el nombre del cliente con mayor límite de crédito.
 
    ```mysql
-   
+      SELECT in_c.nombre_cliente,c.limite_credito
+      FROM cliente AS c
+      INNER JOIN info_cliente AS in_c ON c.codigo_cliente = in_c.codigo_cliente
+      ORDER BY c.limite_credito DESC
+      LIMIT 1;
+      
+      +----------------+----------------+
+      | nombre_cliente | limite_credito |
+      +----------------+----------------+
+      | Rosa           |        3500.00 |
+      +----------------+----------------+
    ```
 
    
@@ -1125,7 +1376,16 @@ LEFT JOIN y NATURAL RIGHT JOIN.
 2. Devuelve el nombre del producto que tenga el precio de venta más caro.
 
    ```mysql
-   
+      SELECT nombre_producto,precio_venta
+      FROM producto
+      ORDER BY precio_venta DESC
+      LIMIT 1;
+      
+      +----------------------------+--------------+
+      | nombre_producto            | precio_venta |
+      +----------------------------+--------------+
+      | Charming Garden Wind Chime |        50.00 |
+      +----------------------------+--------------+
    ```
 
    
@@ -1136,7 +1396,17 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     tabla detalle_pedido)
 
   ```mysql
-  
+      SELECT p.nombre_producto
+      FROM producto AS p
+      INNER JOIN detalle_pedido AS dp ON p.codigo_producto = dp.codigo_producto
+      ORDER BY dp.cantidad DESC
+      LIMIT 1;
+      
+      +-----------------+
+      | nombre_producto |
+      +-----------------+
+      | Mi vaquita      |
+      +-----------------+
   ```
 
   
@@ -1145,7 +1415,18 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     realizado. (Sin utilizar INNER JOIN).
 
   ```mysql
-  
+     SELECT c.codigo_cliente,c.limite_credito
+      FROM cliente AS c
+      WHERE c.limite_credito > (
+          SELECT COALESCE(SUM(total_pago), 0)FROM pago AS p WHERE p.codigo_cliente = c.codigo_cliente)
+      ORDER BY c.limite_credito DESC
+      LIMIT 1;
+      
+      +----------------+----------------+
+      | codigo_cliente | limite_credito |
+      +----------------+----------------+
+      |             10 |        3500.00 |
+      +----------------+----------------+
   ```
 
   
@@ -1153,7 +1434,16 @@ LEFT JOIN y NATURAL RIGHT JOIN.
 5. Devuelve el producto que más unidades tiene en stock.
 
    ```mysql
-   
+      SELECT p.codigo_producto,p.cantidad_stock
+      FROM producto AS p
+      ORDER BY p.cantidad_stock DESC
+      LIMIT 1;
+      
+      +-----------------+----------------+
+      | codigo_producto | cantidad_stock |
+      +-----------------+----------------+
+      |               1 |            160 |
+      +-----------------+----------------+
    ```
 
    
@@ -1161,7 +1451,16 @@ LEFT JOIN y NATURAL RIGHT JOIN.
 6. Devuelve el producto que menos unidades tiene en stock.
 
    ```mysql
-   
+      SELECT p.codigo_producto,p.cantidad_stock
+      FROM producto AS p
+      ORDER BY p.cantidad_stock ASC
+      LIMIT 1;
+
+       +-----------------+----------------+
+      | codigo_producto | cantidad_stock |
+      +-----------------+----------------+
+      |               5 |             20 |
+      +-----------------+----------------+
    ```
 
    
@@ -1169,20 +1468,37 @@ LEFT JOIN y NATURAL RIGHT JOIN.
 7. Devuelve el nombre, los apellidos y el email de los empleados que están a
     cargo de Alberto Soria.
 
-  
-
-  ###### Subconsultas con ALL y ANY
-
   ```mysql
-  
+     SELECT con_e.nombre_empleado,con_e.apellido1_empleado,con_e.apellido2_empleado,con_e.email_empleado
+      FROM empleado AS e
+      INNER JOIN contacto_empleado AS con_e ON con_e.codigo_empleado = e.codigo_empleado
+      INNER JOIN jefe AS j ON j.codigo_jefe = e.codigo_jefe
+      WHERE j.nombre_jefe LIKE '%Alberto%' AND j.apellido1_jefe LIKE '%Soria%';
+      
+      +-----------------+--------------------+--------------------+-------------------+
+      | nombre_empleado | apellido1_empleado | apellido2_empleado | email_empleado    |
+      +-----------------+--------------------+--------------------+-------------------+
+      | Luis Fernando   | Gómez              | Vázquez            | luis@example.com  |
+      | Jorge Emilio    | Gutiérrez          | Hernández          | jorge@example.com |
+      +-----------------+--------------------+--------------------+-------------------+
   ```
 
-  
+  ###### Subconsultas con ALL y ANY  
 
 8. Devuelve el nombre del cliente con mayor límite de crédito.
 
    ```mysql
-   
+      SELECT in_c.nombre_cliente, c.limite_credito
+      FROM cliente AS c
+      INNER JOIN info_cliente AS in_c ON c.codigo_cliente = in_c.codigo_cliente
+      WHERE c.limite_credito >= ALL (SELECT limite_credito FROM cliente)
+      LIMIT 1;
+
+      +----------------+----------------+
+      | nombre_cliente | limite_credito |
+      +----------------+----------------+
+      | Rosa           |        3500.00 |
+      +----------------+----------------+
    ```
 
    
@@ -1190,28 +1506,61 @@ LEFT JOIN y NATURAL RIGHT JOIN.
 9. Devuelve el nombre del producto que tenga el precio de venta más caro.
 
    ```mysql
-   
+      SELECT nombre_producto,precio_venta
+      FROM producto
+      WHERE precio_venta >= ALL (SELECT precio_venta FROM producto)
+      LIMIT 1;
+      
+      +----------------------------+--------------+
+      | nombre_producto            | precio_venta |
+      +----------------------------+--------------+
+      | Charming Garden Wind Chime |        50.00 |
+      +----------------------------+--------------+
    ```
 
    
 
 10. Devuelve el producto que menos unidades tiene en stock.
 
-    
-
-    ###### Subconsultas con IN y NOT IN
-
     ```mysql
-    
+       SELECT p.codigo_producto,p.cantidad_stock
+      FROM producto AS p
+      WHERE p.cantidad_stock <= ALL (SELECT cantidad_stock FROM producto)
+      LIMIT 1;
+      
+      +-----------------+----------------+
+      | codigo_producto | cantidad_stock |
+      +-----------------+----------------+
+      |               5 |             20 |
+      +-----------------+----------------+
     ```
 
-    
+
+    ###### Subconsultas con IN y NOT IN    
 
 11. Devuelve el nombre, apellido1 y cargo de los empleados que no
     representen a ningún cliente.
 
     ```mysql
-    
+       SELECT codigo_empleado,(SELECT nombre_empleado FROM contacto_empleado WHERE empleado.codigo_empleado = contacto_empleado.codigo_empleado) AS nombre,(SELECT apellido1_empleado FROM contacto_empleado                WHERE empleado.codigo_empleado = contacto_empleado.codigo_empleado) AS apellido,empleado.puesto
+      FROM empleado
+      WHERE codigo_empleado NOT IN (
+          SELECT DISTINCT codigo_empleado_repventas
+          FROM cliente
+          WHERE codigo_empleado_repventas IS NOT NULL
+      );
+      
+      +-----------------+----------------+------------+---------------+
+      | codigo_empleado | nombre         | apellido   | puesto        |
+      +-----------------+----------------+------------+---------------+
+      |               1 | Juan           | Hernández  | Gerente       |
+      |               2 | María Elena    | Sánchez    | Analista      |
+      |               3 | Pedro Luis     | González   | Asistente     |
+      |               5 | Sara Alejandra | García     | Asistente     |
+      |               6 | NULL           | NULL       | Administrador |
+      |               9 | Jorge Emilio   | Gutiérrez  | Desarrollador |
+      |              10 | Rosa María     | Martínez   | Asistente     |
+      +-----------------+----------------+------------+---------------+
     ```
 
     
@@ -1220,7 +1569,17 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     realizado ningún pago.
 
     ```mysql
-    
+       SELECT DISTINCT c.codigo_cliente
+      FROM cliente AS c
+      INNER JOIN pedido AS p ON c.codigo_cliente = p.codigo_cliente
+      WHERE c.codigo_cliente NOT IN (SELECT DISTINCT codigo_cliente FROM pago);
+      
+      +----------------+
+      | codigo_cliente |
+      +----------------+
+      |              3 |
+      |              6 |
+      +----------------+
     ```
 
     
@@ -1229,7 +1588,23 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     algún pago.
 
     ```mysql
-    
+       SELECT DISTINCT c.codigo_cliente
+      FROM cliente AS c
+      INNER JOIN pedido AS p ON c.codigo_cliente = p.codigo_cliente
+      WHERE c.codigo_cliente IN (SELECT DISTINCT codigo_cliente FROM pago);
+      
+      +----------------+
+      | codigo_cliente |
+      +----------------+
+      |              1 |
+      |              2 |
+      |              4 |
+      |              5 |
+      |              7 |
+      |              8 |
+      |              9 |
+      |             10 |
+      +----------------+
     ```
 
     
@@ -1238,7 +1613,17 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     pedido.
 
     ```mysql
-    
+       SELECT p.codigo_producto
+      FROM producto AS p
+      WHERE codigo_producto NOT IN (SELECT pe.codigo_producto FROM pedido AS pe);
+      
+      +-----------------+
+      | codigo_producto |
+      +-----------------+
+      |               2 |
+      |               6 |
+      |               8 |
+      +-----------------+
     ```
 
     
@@ -1247,7 +1632,21 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     empleados que no sean representante de ventas de ningún cliente.
 
     ```mysql
-    
+       SELECT e.puesto,(SELECT nombre_empleado FROM contacto_empleado AS c_e WHERE e.codigo_empleado = c_e.codigo_empleado) AS nombre,(SELECT apellido1_empleado FROM contacto_empleado AS c_e WHERE                         e.codigo_empleado = c_e.codigo_empleado) AS apellido,(SELECT telefono_oficina FROM contacto_oficina AS c_of WHERE e.codigo_oficina = c_of.codigo_oficina) AS telefono_oficina
+      FROM empleado AS e
+      WHERE e.codigo_empleado NOT IN (SELECT DISTINCT codigo_empleado_repventas FROM cliente WHERE codigo_empleado_repventas IS NOT NULL);
+       
+      +---------------+----------------+------------+------------------+
+      | puesto        | nombre         | apellido   | telefono_oficina |
+      +---------------+----------------+------------+------------------+
+      | Gerente       | Juan           | Hernández  | 555-123-456      |
+      | Analista      | María Elena    | Sánchez    | 555-123-456      |
+      | Asistente     | Pedro Luis     | González   | 555-987-654      |
+      | Asistente     | Sara Alejandra | García     | 555-321-987      |
+      | Administrador | NULL           | NULL       | NULL             |
+      | Desarrollador | Jorge Emilio   | Gutiérrez  | NULL             |
+      | Asistente     | Rosa María     | Martínez   | 555-789-123      |
+      +---------------+----------------+------------+------------------+
     ```
 
     
@@ -1266,7 +1665,17 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     han realizado ningún pago.
 
     ```mysql
-    
+       SELECT DISTINCT c.codigo_cliente
+       FROM cliente AS c
+       INNER JOIN pedido AS p ON c.codigo_cliente = p.codigo_cliente
+       WHERE c.codigo_cliente NOT IN (SELECT DISTINCT codigo_cliente FROM pago);
+         
+         +----------------+
+         | codigo_cliente |
+         +----------------+
+         |              3 |
+         |              6 |
+         +----------------+
     ```
 
     
@@ -1277,7 +1686,16 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     realizado ningún pago.
 
     ```mysql
-    
+       SELECT DISTINCT codigo_cliente
+      FROM cliente AS c
+      WHERE NOT EXISTS (SELECT 1 FROM pago AS p WHERE p.codigo_cliente = c.codigo_cliente);
+      
+      +----------------+
+      | codigo_cliente |
+      +----------------+
+      |              3 |
+      |              6 |
+      +----------------+
     ```
 
     
@@ -1286,7 +1704,22 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     algún pago.
 
     ```mysql
-    
+       SELECT DISTINCT codigo_cliente
+      FROM cliente AS c
+      WHERE  EXISTS (SELECT 1 FROM pago AS p WHERE p.codigo_cliente = c.codigo_cliente);
+      
+      +----------------+
+      | codigo_cliente |
+      +----------------+
+      |              1 |
+      |              2 |
+      |              4 |
+      |              5 |
+      |             10 |
+      |              7 |
+      |              8 |
+      |              9 |
+      +----------------+
     ```
 
     
@@ -1295,7 +1728,17 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     pedido.
 
     ```mysql
-    
+       SELECT DISTINCT codigo_producto
+      FROM producto AS p
+      WHERE  NOT EXISTS (SELECT 1 FROM pedido AS pe WHERE p.codigo_producto = pe.codigo_producto);
+      
+      +-----------------+
+      | codigo_producto |
+      +-----------------+
+      |               2 |
+      |               6 |
+      |               8 |
+      +-----------------+
     ```
 
     
@@ -1304,7 +1747,21 @@ LEFT JOIN y NATURAL RIGHT JOIN.
     alguna vez.
 
     ```mysql
-    
+          SELECT DISTINCT codigo_producto
+         FROM producto AS p
+         WHERE  EXISTS (SELECT 1 FROM pedido AS pe WHERE p.codigo_producto = pe.codigo_producto);
+         
+         +-----------------+
+         | codigo_producto |
+         +-----------------+
+         |               1 |
+         |               3 |
+         |               4 |
+         |               5 |
+         |               7 |
+         |               9 |
+         |              10 |
+         +-----------------+
     ```
 
     ###### Subconsultas correlacionadas
@@ -1318,7 +1775,22 @@ LEFT JOIN y NATURAL RIGHT JOIN.
        han realizado ningún pedido.
 
     ```mysql
-    
+       SELECT in_c.nombre_cliente,COUNT(pe.codigo_pedido) AS cantidad_pedidos
+      FROM info_cliente AS in_c
+      INNER JOIN pedido AS pe ON in_c.codigo_cliente = pe.codigo_cliente
+      GROUP BY in_c.nombre_cliente;
+      
+      +----------------+------------------+
+      | nombre_cliente | cantidad_pedidos |
+      +----------------+------------------+
+      | Juan           |                2 |
+      | María          |                2 |
+      | Pedro          |                1 |
+      | Ana            |                1 |
+      | Sara           |                1 |
+      | Carla          |                1 |
+      | Rosa           |                1 |
+      +----------------+------------------+
     ```
 
     
@@ -1328,7 +1800,22 @@ LEFT JOIN y NATURAL RIGHT JOIN.
        realizado ningún pago.
 
        ```mysql
-       
+          SELECT in_c.nombre_cliente,in_c.codigo_cliente,SUM(p.total_pago) AS total_pagado
+            FROM info_cliente AS in_c 
+            INNER JOIN pago AS p ON in_c.codigo_cliente = p.codigo_cliente
+            GROUP BY  in_c.nombre_cliente,in_c.codigo_cliente;
+            
+            +----------------+----------------+--------------+
+            | nombre_cliente | codigo_cliente | total_pagado |
+            +----------------+----------------+--------------+
+            | Juan           |              1 |       250.00 |
+            | María          |              2 |       200.00 |
+            | Ana            |              4 |       180.00 |
+            | Sara           |              5 |       220.00 |
+            | Rosa           |             10 |       370.00 |
+            | Luis           |              7 |       190.00 |
+            | Carla          |              8 |       210.00 |
+            +----------------+----------------+--------------+
        ```
 
        
@@ -1337,7 +1824,18 @@ LEFT JOIN y NATURAL RIGHT JOIN.
        ordenados alfabéticamente de menor a mayor.
 
        ```mysql
-       
+          SELECT in_c.codigo_cliente,in_c.nombre_cliente
+         FROM info_cliente AS in_c
+         INNER JOIN pedido AS p ON in_c.codigo_cliente = p.codigo_cliente
+         WHERE YEAR(fecha_pedido) = '2008'
+         ORDER BY in_c.nombre_cliente ASC;
+         
+         +----------------+----------------+
+         | codigo_cliente | nombre_cliente |
+         +----------------+----------------+
+         |              1 | Juan           |
+         |              6 | Pablo          |
+         +----------------+----------------+
        ```
 
        
@@ -1348,7 +1846,22 @@ LEFT JOIN y NATURAL RIGHT JOIN.
        pago.
 
     ```mysql
-    
+       SELECT in_c.nombre_cliente,c_e.nombre_empleado,c_e.apellido1_empleado,con_o.telefono_oficina
+      FROM info_cliente AS in_c
+      INNER JOIN cliente AS c ON c.codigo_cliente = in_c.codigo_cliente
+      INNER JOIN empleado AS e ON c.codigo_empleado_repventas = e.codigo_empleado
+      INNER JOIN contacto_empleado AS c_e ON e.codigo_empleado = c_e.codigo_empleado 
+      INNER JOIN contacto_oficina AS con_o ON e.codigo_oficina = con_o.codigo_oficina;
+      
+      +----------------+-----------------+--------------------+------------------+
+      | nombre_cliente | nombre_empleado | apellido1_empleado | telefono_oficina |
+      +----------------+-----------------+--------------------+------------------+
+      | Carla          | Ana Sofía       | Pérez              | 555-987-654      |
+      | Juan           | Luis Fernando   | Gómez              | 555-456-789      |
+      | Jorge          | Luis Fernando   | Gómez              | 555-456-789      |
+      | Ana            | Pablo Javier    | López              | 555-456-789      |
+      | Pablo          | Pablo Javier    | López              | 555-456-789      |
+      +----------------+-----------------+--------------------+------------------+
     ```
 
     
@@ -1358,7 +1871,22 @@ LEFT JOIN y NATURAL RIGHT JOIN.
        está su oficina.
 
        ```mysql
-       
+           SELECT in_c.nombre_cliente,c_e.nombre_empleado,c_e.apellido1_empleado,ciu_o.nombre_ciudad_oficina
+            FROM info_cliente AS in_c
+            INNER JOIN cliente AS c ON c.codigo_cliente = in_c.codigo_cliente
+            INNER JOIN empleado AS e ON c.codigo_empleado_repventas = e.codigo_empleado
+            INNER JOIN contacto_empleado AS c_e ON e.codigo_empleado = c_e.codigo_empleado 
+            INNER JOIN ciudad_oficina AS ciu_o ON e.codigo_oficina = ciu_o.codigo_oficina;
+            
+            +----------------+-----------------+--------------------+-----------------------+
+            | nombre_cliente | nombre_empleado | apellido1_empleado | nombre_ciudad_oficina |
+            +----------------+-----------------+--------------------+-----------------------+
+            | Carla          | Ana Sofía       | Pérez              | New york              |
+            | Juan           | Luis Fernando   | Gómez              | Sevilla               |
+            | Jorge          | Luis Fernando   | Gómez              | Sevilla               |
+            | Ana            | Pablo Javier    | López              | Sevilla               |
+            | Pablo          | Pablo Javier    | López              | Sevilla               |
+            +----------------+-----------------+--------------------+-----------------------+
        ```
 
        
@@ -1376,7 +1904,20 @@ LEFT JOIN y NATURAL RIGHT JOIN.
        número de empleados que tiene.
 
        ```mysql
-       
+          SELECT ciu_o.nombre_ciudad_oficina,count(DISTINCT e.codigo_empleado) AS empleados,e.codigo_oficina
+         FROM ciudad_oficina AS ciu_o
+         INNER JOIN empleado AS e ON ciu_o.codigo_oficina = e.codigo_oficina
+         GROUP BY ciu_o.nombre_ciudad_oficina,e.codigo_oficina;
+         
+         +-----------------------+-----------+----------------+
+         | nombre_ciudad_oficina | empleados | codigo_oficina |
+         +-----------------------+-----------+----------------+
+         | Ciudad de México      |         2 |              1 |
+         | Colonia               |         1 |              5 |
+         | Fuenlabrada           |         1 |              3 |
+         | New york              |         2 |              2 |
+         | Sevilla               |         2 |              4 |
+         +-----------------------+-----------+----------------+
        ```
 
        
