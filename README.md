@@ -556,7 +556,7 @@ sintaxis de SQL2 se deben resolver con INNER JOIN y NATURAL JOIN.
 5. Devuelve el nombre de los clientes que no hayan hecho pagos y el nombre
     de sus representantes junto con la ciudad de la oficina a la que pertenece el
     representante.
-  
+
   ```mysql
   SELECT p.codigo_empleado,in_c.nombre_cliente
   FROM info_cliente AS in_c
@@ -612,7 +612,7 @@ sintaxis de SQL2 se deben resolver con INNER JOIN y NATURAL JOIN.
        FROM empleado AS e
        INNER JOIN contacto_empleado AS con_e ON con_e.codigo_empleado = e.codigo_empleado
        INNER JOIN jefe AS j ON j.codigo_jefe = e.codigo_jefe;
-   
+      
          +-----------------+-------------+----------------+
          | nombre_empleado | nombre_jefe | apellido1_jefe |
          +-----------------+-------------+----------------+
@@ -1895,14 +1895,29 @@ LEFT JOIN y NATURAL RIGHT JOIN.
        empleados que no sean representante de ventas de ningún cliente.
 
     ```mysql
+    SELECT ce.nombre_empleado,c.codigo_empleado_repventas,ce.apellido1_empleado,e.puesto,co.telefono_oficina
+    FROM contacto_empleado AS ce
+    INNER JOIN empleado AS e ON ce.codigo_empleado = e.codigo_empleado
+    LEFT JOIN cliente AS c ON e.codigo_empleado = c.codigo_empleado_repventas
+    INNER JOIN contacto_oficina AS co ON e.codigo_oficina = co.codigo_oficina
+    WHERE c.codigo_empleado_repventas IS NULL;
     
+    +-----------------+---------------------------+--------------------+-----------+------------------+
+    | nombre_empleado | codigo_empleado_repventas | apellido1_empleado | puesto    | telefono_oficina |
+    +-----------------+---------------------------+--------------------+-----------+------------------+
+    | María Elena     |                      NULL | Sánchez            | Analista  | 555-123-456      |
+    | Juan            |                      NULL | Hernández          | Gerente   | 555-123-456      |
+    | Pedro Luis      |                      NULL | González           | Asistente | 555-987-654      |
+    | Sara Alejandra  |                      NULL | García             | Asistente | 555-321-987      |
+    | Rosa María      |                      NULL | Martínez           | Asistente | 555-789-123      |
+    +-----------------+---------------------------+--------------------+-----------+------------------+
     ```
-
     
-
+    
+    
     7. Devuelve un listado indicando todas las ciudades donde hay oficinas y el
        número de empleados que tiene.
-
+    
        ```mysql
           SELECT ciu_o.nombre_ciudad_oficina,count(DISTINCT e.codigo_empleado) AS empleados,e.codigo_oficina
          FROM ciudad_oficina AS ciu_o
@@ -1919,5 +1934,5 @@ LEFT JOIN y NATURAL RIGHT JOIN.
          | Sevilla               |         2 |              4 |
          +-----------------------+-----------+----------------+
        ```
-
+    
        

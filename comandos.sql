@@ -4,7 +4,7 @@ CREATE TABLE contacto_cliente (
   codigo_cliente INT(11),
   nombre_contacto_cliente VARCHAR(30),
   apellido_contacto_cliente VARCHAR(30)
-);
+)ENGINE = InnoDB;
 
 CREATE TABLE telefono_cliente (
   id_telefono_cliente INT(11) PRIMARY KEY AUTO_INCREMENT,
@@ -12,7 +12,7 @@ CREATE TABLE telefono_cliente (
   telefono_fijo_cliente VARCHAR(15),
   telefono_personal_cliente VARCHAR(15),
   fax VARCHAR(15)
-);
+)ENGINE = InnoDB;
     
 CREATE TABLE direccion_cliente (
   id_direccion_cliente INT(11) PRIMARY KEY AUTO_INCREMENT,
@@ -20,28 +20,27 @@ CREATE TABLE direccion_cliente (
   linea_direccion1_cliente VARCHAR(50),
   linea_direccion2_cliente VARCHAR(50),
   codigo_postal_cliente VARCHAR(10)
-);
+)ENGINE = InnoDB;
     
 CREATE TABLE ciudad_cliente (
-  id_ciudad_cliente INT(11),
-  codigo_cliente INT(11),
-  nombre_ciudad_cliente VARCHAR(50),
-  id_region_cliente INT(11)
-);
+    id_ciudad_cliente INT PRIMARY KEY,
+    codigo_cliente INT,
+    nombre_ciudad_cliente VARCHAR(255),
+    id_region_cliente INT
+)ENGINE = InnoDB;
+
+CREATE TABLE region_cliente (
+    id_region_cliente INT PRIMARY KEY,
+    nombre_region_cliente VARCHAR(255),
+    id_pais_cliente INT
+)ENGINE = InnoDB;
+
 
 CREATE TABLE pais_cliente (
-  id_pais_cliente INT(11),
+  id_pais_cliente INT(11) PRIMARY KEY,
   codigo_cliente INT(11),
   nombre_pais_cliente VARCHAR(50)
-);
-
-    
-CREATE TABLE region_cliente (
-  id_region_cliente INT(11),
-  codigo_cliente INT(11),
-  nombre_region_cliente VARCHAR(50),
-  id_pais_cliente INT(11)
-);
+)ENGINE = InnoDB;
 
 CREATE TABLE info_cliente (
   id_info_cliente INT(11) PRIMARY KEY AUTO_INCREMENT,
@@ -50,7 +49,7 @@ CREATE TABLE info_cliente (
   nombre2_cliente VARCHAR(50),
   apellido1_cliente VARCHAR(50),
   apellido2_cliente VARCHAR(50)
-);
+)ENGINE = InnoDB;
     
 CREATE TABLE cliente (
   codigo_cliente INT(11) PRIMARY KEY AUTO_INCREMENT,
@@ -60,17 +59,19 @@ CREATE TABLE cliente (
   id_ciudad_cliente INT(11),
   id_info_cliente INT(11),
   limite_credito DECIMAL(15,2),
-  codigo_empleado INT(11)
-);
+  codigo_empleado_repventas INT(11)
+)ENGINE = InnoDB;
 
 CREATE TABLE pago (
   codigo_pago INT(11) PRIMARY KEY AUTO_INCREMENT,
+  codigo_pedido INT(11),
   codigo_cliente INT(11),
+  codigo_empleado INT(11),
   forma_pago VARCHAR(40),
   codigo_transaccion VARCHAR(50),
   fecha_pago DATE,
   total_pago DECIMAL(15,2)
-);
+)ENGINE = InnoDB;
 CREATE TABLE empleado(
   codigo_empleado INT(11) PRIMARY KEY AUTO_INCREMENT,
   id_contacto_empleado INT(11),
@@ -78,7 +79,7 @@ CREATE TABLE empleado(
   codigo_oficina INT(11),
   codigo_jefe INT(11),
   puesto VARCHAR(50)
-);
+)ENGINE = InnoDB;
 
 CREATE TABLE pedido(
   codigo_pedido INT(11) PRIMARY KEY AUTO_INCREMENT,
@@ -89,14 +90,14 @@ CREATE TABLE pedido(
   estado_pedido ENUM ('en proceso','finalizado','no permitido') DEFAULT 'en proceso',
   comentarios_pedido TEXT,
   codigo_cliente INT(11)
-  );
+  )ENGINE = InnoDB;
 CREATE TABLE detalle_pedido(
-  codigo_pedido INT(11),
+  codigo_pedido INT(11) PRIMARY KEY AUTO_INCREMENT,
   codigo_producto INT(11),
   cantidad INT(11),
   precio_unidad DECIMAL(15,2),
   numero_linea SMALLINT(6)
-  );
+  )ENGINE = InnoDB;
 CREATE TABLE producto(
   codigo_producto INT(11)  PRIMARY KEY AUTO_INCREMENT,
   nombre_producto VARCHAR(70),
@@ -107,31 +108,31 @@ CREATE TABLE producto(
   cantidad_stock SMALLINT(6),
   precio_venta DECIMAL (15,2),
   precio_proveedor DECIMAL (15,2)
-  );
+  )ENGINE = InnoDB;
 CREATE TABLE dimensiones_producto(
   id_dimensiones_producto INT(11) PRIMARY KEY,
   ancho DECIMAL (8,2),
   alto DECIMAL (8,2),
   profundo DECIMAL (8,2)
-  );
+  )ENGINE = InnoDB;
 CREATE TABLE gama_producto(
   id_gama_producto INT(11) PRIMARY KEY,
   codigo_producto INT(11),
   descripcion_gama_producto TEXT,
   descripcion_gama_producto_html TEXT,
   imagen VARCHAR(256)
-  );
+  )ENGINE = InnoDB;
 CREATE TABLE proveedor_producto(
   id_proveedor INT(11) PRIMARY KEY,
   codigo_producto INT(11)
-  );
+  )ENGINE = InnoDB;
 
 CREATE TABLE transaccion (
-  codigo_transaccion INT(11),
+  codigo_transaccion INT(11) PRIMARY KEY AUTO_INCREMENT,
   codigo_cliente INT(11),
   fecha_transaccion DATE,
   cantidad_transaccion DECIMAL(15,2)
-);
+)ENGINE = InnoDB;
 
 CREATE TABLE contacto_empleado(
   id_contacto_empleado INT(11) PRIMARY KEY,
@@ -140,7 +141,7 @@ CREATE TABLE contacto_empleado(
   apellido1_empleado VARCHAR(50),
   nombre_empleado VARCHAR(50),
   email_empleado VARCHAR(100)
-);
+)ENGINE = InnoDB;
 CREATE TABLE jefe(
   codigo_jefe INT(11) PRIMARY KEY,
   codigo_empleado INT(11),
@@ -149,53 +150,54 @@ CREATE TABLE jefe(
   apellido2_jefe VARCHAR(50),
   email_jefe VARCHAR(100),
   puesto_jefe VARCHAR(50)
-);
+)ENGINE = InnoDB;
 CREATE TABLE oficina(
   codigo_oficina INT(11) PRIMARY KEY,
   id_ciudad_oficina INT(11),
   id_contacto_oficina INT(11),
   id_direccion_oficina INT(11)
-  );
+  )ENGINE = InnoDB;
 CREATE TABLE contacto_oficina(
   id_contacto_oficina INT(11) PRIMARY KEY,
   codigo_oficina INT(11),
   codigo_postal_oficina VARCHAR(10),
   telefono_oficina VARCHAR(20)
-  );
+  )ENGINE = InnoDB;
 CREATE TABLE direccion_oficina(
   id_direccion_oficina INT(11) PRIMARY KEY, 
   codigo_oficina INT(11),
   linea_direccion1_oficina VARCHAR(50),
   linea_direccion2_oficina VARCHAR(50)
-  );
+  )ENGINE = InnoDB;
 CREATE TABLE ciudad_oficina(
-  id_ciudad_oficina INT(11),
+  id_ciudad_oficina INT(11) PRIMARY KEY,
   codigo_oficina INT (11),
   nombre_ciudad_oficina VARCHAR(50),
   id_region_oficina INT(11)
-  );
+  )ENGINE = InnoDB;
 CREATE TABLE pais_oficina(
-  id_pais_oficina INT(11),
+  id_pais_oficina INT(11) PRIMARY KEY,
   nombre_pais_oficina VARCHAR(50)
-  );
+  )ENGINE = InnoDB;
 CREATE TABLE region_oficina(
-  id_region_oficina INT(11),
+  id_region_oficina INT(11) PRIMARY KEY ,
   nombre_region_oficina VARCHAR(50),
   id_pais_oficina INT(11)
-  );
-  
-INSERT INTO cliente (codigo_cliente, id_contacto_cliente, id_telefono_cliente, id_direccion_cliente, id_ciudad_cliente, id_info_cliente, limite_credito, codigo_empleado) 
+  )ENGINE = InnoDB;
+
+
+INSERT INTO cliente (codigo_cliente, id_contacto_cliente, id_telefono_cliente, id_direccion_cliente, id_ciudad_cliente, id_info_cliente, limite_credito, codigo_empleado_repventas) 
 VALUES  
-(1, 1, 1, 1, 1, 1, 2000.00, 4),
-(2, 2, 2, 2, 2, 2, 1500.00, 7),
-(3, 3, 3, 3, 3, 3, 1900.00, 8),
-(4, 4, 4, 4, 4, 4, 2500.00, 7),
-(5, 5, 5, 5, 5, 5, 1800.00, 8),
-(6, 6, 6, 6, 6, 6, 3200.00, 8),
-(7, 7, 7, 7, 7, 7, 2700.00, 4),
-(8, 8, 8, 8, 8, 8, 1900.00, 4),
-(9, 9, 9, 9, 9, 9, 2800.00, 8),
-(10, 10, 10, 10, 10, 10, 3500.00, 7);
+(1, 1, 1, 1, 31, 1, 2000.00, 11),
+(2, 2, 2, 2, 653, 2, 1500.00, NULL),
+(3, 3, 3, 3, 15, 3, 1900.00, NULL),
+(4, 4, 4, 4, 23, 4, 2500.00, 30),
+(5, 5, 5, 5, 821, 5, 1800.00, NULL),
+(6, 6, 6, 6, 161, 6, 3200.00, 30),
+(7, 7, 7, 7, 332, 7, 2700.00, null),
+(8, 8, 8, 8, 27, 8, 1900.00, 4),
+(9, 9, 9, 9, 310, 9, 2800.00,11),
+(10, 10, 10, 55, 10, 10, 3500.00, NULL);
 
 
 INSERT INTO contacto_cliente (id_contacto_cliente, codigo_cliente, nombre_contacto_cliente, apellido_contacto_cliente)
@@ -247,26 +249,27 @@ VALUES
     (31, 1,'Yucatán',08),
     (653,2, 'Sedalia', 660),
     (15, 3, 'Downtown', 780),
-    (23, 4, 'Jaén', 1),
+    (23, 4, 'Madrid', 1),
     (821,5, 'Augsberg',496 ),
     (161,6, 'Cognac', 16),
     (332,7, 'Varese', 7),
     (27,8,'Lugo', 12),
-    (310,9, 'Xihu District', 571),
+    (310,9, 'Madrid', 571),
     (55,10,'Brasilia', 10);
     
-INSERT INTO pais_cliente (id_pais_cliente,nombre_pais_cliente)
+INSERT INTO pais_cliente (id_pais_cliente, nombre_pais_cliente)
 VALUES 
-    ( 493, 'México'),
-    ( 249, 'Estados Unidos'),
-    ( 149, 'Canadá'),
-    ( 245, 'España'),
+    (493, 'México'),
+    (249, 'Estados Unidos'),
+    (149, 'Canadá'),
+    (245, 'España'),
     (276, 'Alemania'),
-    (275 , 'Francia'),
-    ( 386,'Italia'),
-    ( 245, 'España'),
-    ( 156, 'China'),
-    ( 076,'Brasil');
+    (275, 'Francia'),
+    (386, 'Italia'),
+    (245, 'España'),
+    (156, 'China'),
+    (76, 'Brasil');
+
     
 INSERT INTO region_cliente (id_region_cliente, nombre_region_cliente, id_pais_cliente)
 VALUES 
@@ -295,18 +298,18 @@ VALUES
     (9, 9, 'Jorge', 'Emilio', 'Hernández', 'Gutiérrez'),
     (10, 10, 'Rosa', 'María', 'Gómez', 'Martínez');
     
-INSERT INTO pago (codigo_pago,codigo_cliente, forma_pago, codigo_transaccion, fecha_pago, total_pago)
+INSERT INTO pago (codigo_pago,codigo_pedido,codigo_cliente,codigo_empleado, forma_pago, codigo_transaccion, fecha_pago, total_pago)
 VALUES 
-    (1,1, 'Tarjeta de crédito', 123, '2024-04-15', 150.00),
-    (2,2, 'Transferencia bancaria', 789, '2024-04-16', 200.00),
-    (3,3, 'Efectivo', 456, '2024-04-17', 100.00),
-    (4,4, 'Cheque', 789, '2024-04-18', 180.00),
-    (5,5, 'PayPal', 012, '2024-04-19', 220.00),
-    (6,6, 'Transferencia bancaria', 345, '2024-04-20', 130.00),
-    (7,7, 'Efectivo', 678, '2024-04-21', 190.00),
-    (8,8, 'Tarjeta de débito', 901, '2024-04-22', 210.00),
-    (9,9, 'Cheque', 234, '2024-04-23', 170.00),
-    (10,10,'PayPal', 567, '2024-04-24', 240.00);
+    (NULL,1,1,NULL, 'Tarjeta de crédito', 123, '2008-04-15', 150.00),
+    (NULL,2,2, NULL,'Transferencia bancaria', 789, '2009-04-16', 200.00),
+    (NULL,3,1,NULL, 'PayPal', 456, '2024-04-17', 100.00),
+    (NULL,4,4,NULL, 'Cheque', 789, '2009-04-18', 180.00),
+    (NULL,5,5,NULL,'PayPal', 012, '2008-04-19', 220.00),
+    (NULL,6,10,NULL,'Transferencia bancaria', 345, '2008-04-20', 130.00),
+    (NULL,7,7,30, 'Efectivo', 678, '2024-04-21', 190.00),
+    (NULL,8,8,4, 'Tarjeta de débito', 901, '2024-04-22', 210.00),
+    (NULL,9,NULL,11,'Nequi',324,'2022-05-03',300.00),
+    (NULL,10,10,NULL,'PayPal', 567, '2008-04-24', 240.00);
     
 INSERT INTO transaccion (codigo_transaccion, codigo_cliente, fecha_transaccion, cantidad_transaccion)
 VALUES 
@@ -328,10 +331,10 @@ VALUES
     (3, 3, '789', 2, 1, 'Asistente'),
     (4, 4, '012', 2, 2, 'Representante de ventas'),
     (5, 5, '345', 3, 2, 'Asistente'),
-    (6, 6, '678', 3, 3, 'Administrador'),
-    (7, 7, '901', 4, 3, 'Representante de ventas'),
-    (8, 8, '234', 4, 4, 'Representante de ventas'),
-    (9, 9, '567', 5, 4, 'Desarrollador'),
+    (6, 6, '678', NULL, 3, 'Administrador'),
+    (30, 7, '901', 4, 3, 'Representante de ventas'),
+    (11, 8, '234', 4, 4, 'Representante de ventas'),
+    (9, 9, '567', NULL, 4, 'Desarrollador'),
     (10, 10, '890', 5, 5, 'Asistente');
     
 INSERT INTO contacto_empleado (id_contacto_empleado, codigo_empleado, apellido2_empleado, apellido1_empleado, nombre_empleado, email_empleado)
@@ -341,8 +344,8 @@ VALUES
     (3, 3, 'Ramírez', 'González', 'Pedro Luis', 'pedro@example.com'),
     (4, 4, 'Díaz', 'Pérez', 'Ana Sofía', 'ana@example.com'),
     (5, 5, 'Torres', 'García', 'Sara Alejandra', 'sara@example.com'),
-    (6, 6, 'Fernández', 'López', 'Pablo Javier', 'pablo@example.com'),
-    (7, 7, 'Vázquez', 'Gómez', 'Luis Fernando', 'luis@example.com'),
+    (6, 30, 'Fernández', 'López', 'Pablo Javier', 'pablo@example.com'),
+    (7, 11, 'Vázquez', 'Gómez', 'Luis Fernando', 'luis@example.com'),
     (8, 8, 'Ruiz', 'Santos', 'Carla Lucía', 'carla@example.com'),
     (9, 9, 'Hernández', 'Gutiérrez', 'Jorge Emilio', 'jorge@example.com'),
     (10, 10, 'Gómez', 'Martínez', 'Rosa María', 'rosa@example.com');
@@ -352,7 +355,7 @@ VALUES
     (1, 1, 'Gerardo', 'Hernández', 'Gómez', 'gerardo@example.com', 'CEO'),
     (2, 2, 'Roberto', 'Fernández', 'Sánchez', 'roberto@example.com', 'Gerente de Área'),
     (3, 3, 'Eduardo', 'López', 'Martínez', 'eduardo@example.com', 'Gerente de Ventas'),
-    (4, 4, 'Alejandro', 'Pérez', 'Gómez', 'alejandro@example.com', 'Gerente de Marketing'),
+    (4, 4, 'Alberto', 'Soria', NULL, 'alejandro@example.com', 'Gerente de Marketing'),
     (5, 5, 'María', 'González', 'López', 'maria@example.com', 'Gerente de Finanzas'),
     (6, 6, 'Laura', 'Martínez', 'Sánchez', 'laura@example.com', 'Gerente de Recursos Humanos'),
     (7, 7, 'Pedro', 'Gómez', 'García', 'pedro@example.com', 'Gerente de Producción'),
@@ -403,7 +406,7 @@ INSERT INTO ciudad_oficina (id_ciudad_oficina,codigo_oficina, nombre_ciudad_ofic
 VALUES 
     (1,1, 'Ciudad de México', 1),
     (2,2,'New york', 2),
-    (3,3, 'Toronto', 3),
+    (3,3, 'Fuenlabrada', 3),
     (4,4, 'Sevilla', 4),
     (5,5, 'Colonia', 5),
     (6,6, 'Lyon', 6),
@@ -440,16 +443,16 @@ VALUES
     
 INSERT INTO pedido (codigo_pedido,codigo_producto, fecha_pedido, fecha_esperada, fecha_entrega, estado_pedido, comentarios_pedido, codigo_cliente)
 VALUES
-    (1,1, '2024-04-01', '2024-04-10', '2024-04-11', 'finalizado', 'Entrega puntual', 1),
-    (2,2, '2024-04-02', '2024-04-11', '2024-04-12', 'finalizado', 'Productos en buen estado', 2),
+    (1,1, '2008-04-01', '2024-04-10', '2024-04-11', 'finalizado', 'Entrega puntual', 1),
+    (2,1, '2024-04-02', '2024-04-11', '2024-04-12', 'finalizado', 'Productos en buen estado', 2),
     (3,3, '2024-04-03', '2024-04-12', '2024-04-13', 'en proceso', 'Esperando confirmación de pago', 3),
-    (4,4, '2024-04-04', '2024-04-13', NULL, 'en proceso', NULL, 4),
-    (5, 5,'2024-04-05', '2024-04-14', NULL, 'no permitido', 'Cliente no autorizado', 5),
-    (6,6, '2024-04-06', '2024-04-15', NULL, 'en proceso', 'Esperando confirmación de stock', 6),
-    (7,7, '2024-04-07', '2024-04-16', NULL, 'en proceso', 'Pedido urgente', 7),
-    (8,8, '2024-04-08', '2024-04-17', NULL, 'en proceso', 'Esperando confirmación de transporte', 8),
-    (9,9, '2024-04-09', '2024-04-18', NULL, 'no permitido', 'Productos pendientes de fabricación', 9),
-    (10,10, '2024-04-10', '2024-04-19', NULL, 'en proceso', NULL, 10);
+    (4,4, '2024-04-04', '2009-04-13', '2009-04-11', 'en proceso', NULL, 4),
+    (5,5,'2024-04-05', '2009-04-14', NULL, 'no permitido', 'Cliente no autorizado', 5),
+    (6,5, '2008-04-06', '2024-04-15', NULL, 'en proceso', 'Esperando confirmación de stock', 2),
+    (7,7, '2024-04-07', '2022-01-16', '2022-01-16', 'en proceso', 'Pedido urgente', NULL),
+    (8,3, '2024-04-08', '2021-04-17', '2021-04-13', 'en proceso', 'Esperando confirmación de transporte', 8),
+    (9,9, '2024-04-09', '2009-04-18', NULL, 'no permitido', 'Productos pendientes de fabricación', 1),
+    (10,10, '2024-04-10', '2024-01-19','2024-01-19' , 'en proceso', NULL, 10);
 
 INSERT INTO detalle_pedido (codigo_pedido, codigo_producto, cantidad, precio_unidad, numero_linea)
 VALUES
@@ -461,21 +464,21 @@ VALUES
     (4, 6, 1, 50.00, 1),
     (5, 7, 3, 20.00, 7),
     (6, 8, 2, 12.50, 1),
-    (7, 9, 5, 18.75,5),
+    (7, 9, 5, 18.75, 5),
     (8, 10, 1, 40.00, 14);
 
 INSERT INTO producto (codigo_producto, nombre_producto, id_gama_producto, id_dimensiones_producto, id_proveedor, descripcion, cantidad_stock, precio_venta, precio_proveedor)
 VALUES
-    (1, 'Producto A', 1, 1, 1, 'Descripción del producto A', 100, 15.00, 10.00),
-    (2, 'Producto B', 2, 2, 2, 'Descripción del producto B', 50, 30.00, 20.00),
-    (3, 'Producto C', 1, 3, 3, 'Descripción del producto C', 75, 20.00, 15.00),
-    (4, 'Producto D', 2, 1, 4, 'Descripción del producto D', 30, 40.00, 25.00),
-    (5, 'Producto E', 3, 2, 5, 'Descripción del producto E', 20, 10.00, 8.00),
-    (6, 'Producto F', 1, 3, 6, 'Descripción del producto F', 40, 50.00, 35.00),
-    (7, 'Producto G', 2, 1, 7, 'Descripción del producto G', 60, 25.00, 18.00),
-    (8, 'Producto H', 3, 2, 8, 'Descripción del producto H', 90, 12.50, 10.00),
-    (9, 'Producto I', 1, 3, 9, 'Descripción del producto I', 55, 18.75, 15.00),
-    (10, 'Producto J', 2, 1, 10, 'Descripción del producto J', 70, 40.00, 30.00);
+    (1, 'Mi vaquita', 1, 1, 1, 'Forro lavadora', 160, 15.00, 10.00),
+    (2, 'EcoFresh Toothpaste', 2, 2, 2, 'Pasta dental orgánica con menta fresca', 50, 30.00, 20.00),
+    (3, 'Rustic Wooden Snowflake Deco', 1, 3, 3, 'Adorno rústico de copo de nieve de madera', 75, 20.00, 15.00),
+    (4, 'GlowBloom Facial Serum', 2, 1, 4, 'Suero facial rejuvenecedor para una piel radiante y de aspecto juvenil.', 30, 40.00, 25.00),
+    (5, 'SwiftCharge Power Bank', 3, 2, 5, 'Batería portátil ultrarrápida para cargar dispositivos móviles ', 20, 10.00, 8.00),
+    (6, 'Charming Garden Wind Chime', 1, 3, 6, 'Campanas de viento con encanto para añadir melodía y movimiento a tu jardín.', 40, 50.00, 35.00),
+    (7, 'La guerra de troya', 1, 1, 7, 'Jarron de flores', 120, 25.00, 18.00),
+    (8, 'TechGrip Phone Moun', 3, 2, 8, 'Soporte de teléfono para automóvil con agarre seguro y rotación de 360 grados.', 90, 12.50, 10.00),
+    (9, 'Golden Filigree Christmas Ornament', 1, 3, 9, 'Adorno navideño de filigrana dorada', 101, 18.75, 15.00),
+    (10, 'MindfulMeditation App', 2, 1, 10, ' Aplicación de meditación guiada para reducir el estrés y mejorar el bienestar mental.', 70, 40.00, 30.00);
 
 INSERT INTO dimensiones_producto (id_dimensiones_producto, ancho, alto, profundo)
 VALUES
@@ -485,9 +488,10 @@ VALUES
 
 INSERT INTO gama_producto (id_gama_producto,codigo_producto, descripcion_gama_producto, descripcion_gama_producto_html, imagen)
 VALUES
-    (1,1, 'Gama 1', 'Descripción de la Gama 1', 'imagen1.jpg'),
-    (2,2, 'Gama 2', 'Descripción de la Gama 2', 'imagen2.jpg'),
-    (3,3, 'Gama 3', 'Descripción de la Gama 3', 'imagen3.jpg');
+    (1,1, 'Ornamentales', 'Descripción de la Gama 1', 'imagen1.jpg'),
+    (2,2, 'Higiene y bienestar', 'Descripción de la Gama 2', 'imagen2.jpg'),
+    (3,3, 'Teconologia', 'Descripción de la Gama 3', 'imagen3.jpg');
+
 
 INSERT INTO proveedor_producto (id_proveedor, codigo_producto)
 VALUES
