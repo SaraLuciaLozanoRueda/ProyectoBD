@@ -1,5 +1,7 @@
 # PROYECTO BD PARTE 1
 
+![image](https://github.com/SaraLuciaLozanoRueda/ProyectoBD/assets/151969212/6399b3f5-000f-4410-974e-0d694b894e5e)
+
 ### Consultas sobre una tabla
 
 1. Devuelve un listado con el código de oficina y la ciudad donde hay oficinas.
