@@ -1501,3 +1501,21 @@ ADD CONSTRAINT fk_ciudad_oficina_region FOREIGN KEY (id_region_oficina) REFERENC
 -- Tabla region_oficina
 ALTER TABLE region_oficina
 ADD CONSTRAINT fk_region_oficina_pais FOREIGN KEY (id_pais_oficina) REFERENCES pais_oficina (id_pais_oficina);
+
+
+
+
+
+
+
+
+
+
+
+ALTER TABLE ciudad_cliente ADD CONSTRAINT ciudad_cliente_region_cliente_FK FOREIGN KEY (id_region_cliente) REFERENCES k1.region_cliente(id_region_cliente);
+ALTER TABLE cliente ADD CONSTRAINT cliente_contacto_cliente_FK FOREIGN KEY (id_contacto_cliente) REFERENCES k1.contacto_cliente(id_contacto_cliente);
+ALTER TABLE cliente ADD CONSTRAINT cliente_telefono_cliente_FK FOREIGN KEY (id_telefono_cliente) REFERENCES k1.telefono_cliente(id_telefono_cliente);
+ALTER TABLE cliente ADD CONSTRAINT cliente_info_cliente_FK FOREIGN KEY (id_info_cliente) REFERENCES k1.info_cliente(id_info_cliente);
+ALTER TABLE cliente ADD CONSTRAINT cliente_empleado_FK FOREIGN KEY (codigo_empleado) REFERENCES k1.empleado(codigo_empleado);
+ALTER TABLE pedido ADD CONSTRAINT pedido_transaccion_FK FOREIGN KEY (codigo_transaccion) REFERENCES k1.transaccion(codigo_transaccion);
+ALTER TABLE region_cliente ADD CONSTRAINT region_cliente_pais_cliente_FK FOREIGN KEY (id_pais_cliente) REFERENCES k1.pais_cliente(id_pais_cliente);
