@@ -1,6 +1,6 @@
 # PROYECTO BD PARTE 1
+![2 0](https://github.com/SaraLuciaLozanoRueda/ProyectoBD/assets/151969212/49169205-314d-427f-8262-9ec4b6bd23c8)
 
-![image](https://github.com/SaraLuciaLozanoRueda/ProyectoBD/assets/151969212/6399b3f5-000f-4410-974e-0d694b894e5e)
 
 ### Consultas sobre una tabla
 
