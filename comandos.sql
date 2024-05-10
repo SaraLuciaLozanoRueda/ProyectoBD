@@ -529,3 +529,87 @@ VALUES (08, 'Merida', 493),
     (12, 'Galicia', 245),
     (571, 'Hangzhou', 156),
     (10, 'Centro', 076);
+
+
+ALTER TABLE cliente
+ADD CONSTRAINT fk_cliente_telefono FOREIGN KEY (id_telefono_cliente) REFERENCES telefono_cliente(id_telefono_cliente),
+ADD CONSTRAINT fk_cliente_direccion FOREIGN KEY (id_direccion_cliente) REFERENCES direccion_cliente(id_direccion_cliente),
+ADD CONSTRAINT fk_cliente_ciudad FOREIGN KEY (id_ciudad_cliente) REFERENCES ciudad_cliente(id_ciudad_cliente),
+ADD CONSTRAINT fk_cliente_info FOREIGN KEY (id_info_cliente) REFERENCES info_cliente(id_info_cliente),
+ADD CONSTRAINT fk_cliente_empleado FOREIGN KEY (codigo_empleado) REFERENCES empleado(codigo_empleado);
+
+ALTER TABLE ciudad_cliente
+ADD CONSTRAINT fk_ciudad_cliente_region FOREIGN KEY (id_region_cliente) REFERENCES region_cliente(id_region_cliente);
+
+ALTER TABLE region_cliente
+ADD CONSTRAINT fk_region_cliente_pais FOREIGN KEY (id_pais_cliente) REFERENCES pais_cliente(id_pais_cliente);
+
+
+ALTER TABLE region_oficina
+ADD CONSTRAINT fk_region_oficina_pais FOREIGN KEY (id_pais_oficina) REFERENCES pais_oficina(id_pais_oficina);
+
+
+ALTER TABLE ciudad_oficina
+ADD CONSTRAINT fk_ciudad_oficina_region FOREIGN KEY (id_region_oficina) REFERENCES region_oficina(id_region_oficina);
+
+
+ALTER TABLE contacto_empleado
+ADD CONSTRAINT fk_contacto_empleado_empleado FOREIGN KEY (codigo_empleado) REFERENCES empleado(codigo_empleado);
+
+ALTER TABLE contacto_oficina
+ADD CONSTRAINT fk_contacto_oficina_oficina FOREIGN KEY (codigo_oficina) REFERENCES oficina(codigo_oficina);
+
+
+ALTER TABLE detalle_pedido
+ADD CONSTRAINT fk_detalle_pedido_pedido FOREIGN KEY (codigo_pedido) REFERENCES pedido(codigo_pedido),
+ADD CONSTRAINT fk_detalle_pedido_producto FOREIGN KEY (codigo_producto) REFERENCES producto(codigo_producto);
+
+ALTER TABLE direccion_cliente
+ADD CONSTRAINT fk_direccion_cliente_cliente FOREIGN KEY (codigo_cliente) REFERENCES cliente(codigo_cliente);
+
+ALTER TABLE direccion_oficina
+ADD CONSTRAINT fk_direccion_oficina_oficina FOREIGN KEY (codigo_oficina) REFERENCES oficina(codigo_oficina);
+
+ALTER TABLE empleado
+ADD CONSTRAINT fk_empleado_contacto FOREIGN KEY (id_contacto_empleado) REFERENCES contacto_empleado(id_contacto_empleado),
+ADD CONSTRAINT fk_empleado_oficina FOREIGN KEY (codigo_oficina) REFERENCES oficina(codigo_oficina),
+ADD CONSTRAINT fk_empleado_jefe FOREIGN KEY (codigo_jefe) REFERENCES jefe(codigo_jefe);
+
+ALTER TABLE gama_producto
+ADD CONSTRAINT fk_gama_producto_producto FOREIGN KEY (codigo_producto) REFERENCES producto(codigo_producto);
+
+
+ALTER TABLE info_cliente
+ADD CONSTRAINT fk_info_cliente_cliente FOREIGN KEY (codigo_cliente) REFERENCES cliente(codigo_cliente);
+
+
+ALTER TABLE jefe
+ADD CONSTRAINT fk_jefe_empleado FOREIGN KEY (codigo_empleado) REFERENCES empleado(codigo_empleado);
+
+ALTER TABLE oficina
+ADD CONSTRAINT fk_oficina_ciudad FOREIGN KEY (id_ciudad_oficina) REFERENCES ciudad_oficina(id_ciudad_oficina),
+ADD CONSTRAINT fk_oficina_contacto FOREIGN KEY (id_contacto_oficina) REFERENCES contacto_oficina(id_contacto_oficina),
+ADD CONSTRAINT fk_oficina_direccion FOREIGN KEY (id_direccion_oficina) REFERENCES direccion_oficina(id_direccion_oficina);
+
+ALTER TABLE pago
+ADD CONSTRAINT fk_pago_pedido FOREIGN KEY (codigo_pedido) REFERENCES pedido(codigo_pedido),
+ADD CONSTRAINT fk_pago_cliente FOREIGN KEY (codigo_cliente) REFERENCES cliente(codigo_cliente),
+ADD CONSTRAINT fk_pago_empleado FOREIGN KEY (codigo_empleado) REFERENCES empleado(codigo_empleado),
+ADD CONSTRAINT fk_pago_transaccion FOREIGN KEY (codigo_transaccion) REFERENCES transaccion(codigo_transaccion);
+
+
+ALTER TABLE pedido
+ADD CONSTRAINT fk_pedido_cliente FOREIGN KEY (codigo_cliente) REFERENCES cliente(codigo_cliente);
+
+
+ALTER TABLE producto
+ADD CONSTRAINT fk_producto_gama FOREIGN KEY (id_gama_producto) REFERENCES gama_producto(id_gama_producto),
+ADD CONSTRAINT fk_producto_dimensiones FOREIGN KEY (id_dimensiones_producto) REFERENCES dimensiones_producto(id_dimensiones_producto),
+ADD CONSTRAINT fk_producto_proveedor FOREIGN KEY (id_proveedor) REFERENCES proveedor_producto(id_proveedor);
+
+
+ALTER TABLE telefono_cliente
+ADD CONSTRAINT fk_telefono_cliente_cliente FOREIGN KEY (codigo_cliente) REFERENCES cliente(codigo_cliente);
+
+ALTER TABLE transaccion
+ADD CONSTRAINT fk_transaccion_cliente FOREIGN KEY (codigo_cliente) REFERENCES cliente(codigo_cliente);
